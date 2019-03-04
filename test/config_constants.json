@@ -1,0 +1,5 @@
+{
+    "BUILD_R4X": "insertYourAbsolutePathHereForTesting/test/output", 
+    "LIBRARY_NAME": "React4xpTesting", 
+    "BUILD_ENV": "production"
+}
