@@ -16,7 +16,7 @@ Calling in the installed location, run from the project root folder:
 ```bash
 webpack --config node_modules/react4xp-runtime-client/webpack.config.js --env.REACT4XP_CONFIG_FILE=path/to/react4xpConfig.json
 ```
-...where react4xpConfig is a mandatory JSON file with [common React4xp constants](https://www.npmjs.com/package/react4xp-buildconstants).
+...where react4xpConfig is a mandatory JSON file with [shared React4xp constants](https://www.npmjs.com/package/react4xp-buildconstants).
 
 ## Output
 
@@ -24,7 +24,7 @@ Builds two files to the output folder (location is defined by the `BUILD_R4X` co
 
 The first, `react4xpClient.<HASH>.js`, is the compiled code to run in the browser. The content hash in the file name is used by the React4xp runtime to ensure [effective HTTP client caching](https://developers.google.com/web/fundamentals/performance/optimizing-content-efficiency/http-caching) of this file when it's fetched through the React4xp service.
 
-The second, `chunks.client.js`, is used by React4xp to handle the dynamic hash and look up the actual file name.
+The second, `chunks.client.js` (filename actually defined by the constant `CLIENT_CHUNKS_FILENAME`) is used by React4xp to handle the dynamic hash and look up the actual file name.
 
 `react4xpClient.<HASH>.js` makes or adds to the global runtime object `React4xp` (or whatever the constant `LIBRARY_NAME` is set to be), and exposes under it two methods:
 

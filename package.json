@@ -1,6 +1,6 @@
 {
     "name": "react4xp-runtime-client",
-    "version": "0.0.4",
+    "version": "0.1.0",
     "description": "React4xp helper: Webpack setup for building React4xp's client-side wrapper",
     "main": "webpack.config.js",
     "files": [
@@ -18,14 +18,14 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://bitbucket.org/espen42/react4xp-runtime-client"
+        "url": "git+https://github.com/enonic/react4xp-runtime-client"
     },
     "author": "Espen Norderud",
     "license": "MIT",
     "bugs": {
-        "url": "https://bitbucket.org/espen42/react4xp-runtime-client/issues"
+        "url": "https://github.com/enonic/react4xp-runtime-client/issues"
     },
-    "homepage": "https://bitbucket.org/espen42/react4xp-runtime-client",
+    "homepage": "https://github.com/enonic/react4xp-runtime-client",
     "dependencies": {
         "chunks-2-json-webpack-plugin": "^1.0.0"
     },

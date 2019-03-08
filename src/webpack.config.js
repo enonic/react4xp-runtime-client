@@ -9,8 +9,16 @@ const webpack = require('webpack');
 
 module.exports = env => {
     const {
-        BUILD_R4X, LIBRARY_NAME, BUILD_ENV
+        BUILD_R4X, LIBRARY_NAME, BUILD_ENV, CHUNK_CONTENTHASH, CLIENT_CHUNKS_FILENAME
     } = require(env.REACT4XP_CONFIG_FILE);
+
+    // Decides whether or not to hash filenames of common-component chunk files, and the length of the hash
+    const chunkFileName = (!CHUNK_CONTENTHASH) ?
+        "[name].js" :
+        isNaN(CHUNK_CONTENTHASH) ?
+            CHUNK_CONTENTHASH :
+            `[name].[contenthash:${parseInt(CHUNK_CONTENTHASH)}].js`;
+
 
     return {
         mode: BUILD_ENV,
@@ -21,7 +29,7 @@ module.exports = env => {
 
         output: {
             path: BUILD_R4X,  // <-- Sets the base url for plugins and other target dirs.
-            filename: "[name].[contenthash:9].js",
+            filename: chunkFileName,
             libraryTarget: 'var', 
             library: [LIBRARY_NAME, '_CLIENT_'],
         },
@@ -49,11 +57,10 @@ module.exports = env => {
         },
 
         plugins: [
-            new Chunks2json({outputDir: BUILD_R4X, filename: 'chunks.client.json'}),
+            new Chunks2json({outputDir: BUILD_R4X, filename: CLIENT_CHUNKS_FILENAME}),
             new webpack.DefinePlugin({
                 LIBRARY_NAME: JSON.stringify(LIBRARY_NAME)
             })
         ],
-
     };
 };
