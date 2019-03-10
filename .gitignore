@@ -30,6 +30,7 @@ Temporary Items
 
 ### Output ###
 lib/
+build/
 test/output/
 react4xpClient.es6
 webpack.config.js

@@ -1,4 +1,3 @@
-// Wrapper for 
 import ReactDOM from 'react-dom';
 
 

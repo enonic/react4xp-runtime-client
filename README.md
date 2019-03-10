@@ -16,7 +16,15 @@ Calling in the installed location, run from the project root folder:
 ```bash
 webpack --config node_modules/react4xp-runtime-client/webpack.config.js --env.REACT4XP_CONFIG_FILE=path/to/react4xpConfig.json
 ```
-...where react4xpConfig is a mandatory JSON file with [shared React4xp constants](https://www.npmjs.com/package/react4xp-buildconstants).
+...where `env.REACT4XP_CONFIG_FILE` is a [Webpack environment variable](https://webpack.js.org/guides/environment-variables) that points to a mandatory JSON config file (`react4xpConfig.json`) with [shared React4xp constants](https://www.npmjs.com/package/react4xp-buildconstants).
+
+The config JSON file is expected to have the following of the attributes from _react4xp-buildconstants_:
+  - `BUILD_R4X`
+  - `LIBRARY_NAME`
+  - `CHUNK_CONTENTHASH` 
+  - `CLIENT_CHUNKS_FILENAME`
+
+Each of these can also be submitted to `webpack.config.js` with their own `--env.*` parameter in the command line, overriding the value from the config file. If all of them are covered, the config file reference is not needed.
 
 ## Output
 
