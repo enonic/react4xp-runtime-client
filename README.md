@@ -41,6 +41,14 @@ The second, `chunks.client.js` (filename actually defined by the constant `CLIEN
 
 Both of them have the parameter signature:
 
-  - `Component`: a React4xp Entry component or any ReactDOM renderable. If it's a function, the wrapper will try to turn it into a ReactDOM component by running `Component(props)`. React4xp entries are exposed as functions this way.
   - `targetId`: the unique ID of an HTML container element, into which the component will be rendered.
   - `props`: optional object with top-level props that will be sent into the component. React4xp relies on serialization of this object, so functions can't be passed in this way.
+  - `Component`: a React4xp Entry component or any ReactDOM renderable. If it's a function, the wrapper will try to turn it into a ReactDOM component by running `Component(props)`. React4xp entries are exposed as functions this way. 
+    - Note that a fallback has been added so that if an entry component has been compiled into a `.default` sub-attribute, the client can access the component both with and without the `default` field: if `React4xp._CLIENT_.render(Component.default, ...` is strictly correct, `React4xp._CLIENT_.render(Component, ...` will also work.
+    - Also note that usually, [react4xp-build-components](https://www.npmjs.com/package/react4xp-build-components) compiles entry components into the library, accessible through `React4xp` (or more precisely: what the `LIBRARY_NAME` constant has named it). That means the actual calls clientside normally look more like this: 
+    
+```javascript
+React4xp._CLIENT_.render(React4xp.Hello, 'targetContainer', {helloTarget: 'world'});
+``` 
+
+In this example LIBRARY_NAME is `React4xp` and the component is called `Hello` ([built](https://www.npmjs.com/package/react4xp-build-components) from `Hello.jsx`), and being rendered into a DOM element with the ID `targetContainer`, with `{helloTarget: 'world'}` as React props.

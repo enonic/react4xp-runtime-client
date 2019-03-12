@@ -1,5 +1,6 @@
 import ReactDOM from 'react-dom';
 
+import "@babel/polyfill"
 
 const getContainer = (targetId) => {
     let container = null;
@@ -19,8 +20,17 @@ const getContainer = (targetId) => {
 };
 
 
+//TODO: check out if this builds and @babel/polyfill works. If so, use the polyfilled async/await to fetch from service{app.name/}dependencies, and insert that retrieved string of HTML scripts into the page.
+THIS NEEDS TO HAPPEN: DEPENDENCY TRACKING! https://github.com/FormidableLabs/webpack-stats-plugin
+
 const getRenderable = (Component, props) => {
-    return (typeof Component === 'function') ? Component(props) : Component;
+    return (typeof Component === 'function') ?
+        Component(props) :
+        (typeof Component !== 'object') ?
+            Component :
+            (typeof Component.default === 'function') ?
+                Component.default(props) :
+                Component.default;
 };
 
 
