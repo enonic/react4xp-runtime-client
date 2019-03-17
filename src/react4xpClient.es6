@@ -2,6 +2,51 @@ import ReactDOM from 'react-dom';
 
 import "@babel/polyfill"
 
+
+// https://www.oreilly.com/library/view/high-performance-javascript/9781449382308/ch01.html#dynamic_script_elements
+const loadDependencyUrl = (url) => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = url;
+    document.getElementsByTagName("head")[0].appendChild(script);
+};
+
+// TODO: Polyfill fetch? Fetch with timeout? What about promises (Bluebird)?
+
+export function loadDependenciesAsync(entryNames, rootUrl, callback) {
+    entryNames = entryNames || [];
+    if (typeof entryNames === 'string') {
+        entryNames = [entryNames]
+    }
+    entryNames = entryNames
+        .map(name => ((name || "") + "").trim())
+        .filter(name => name !== "");
+
+    if (entryNames.length > 0) {
+        fetch(`${rootUrl}/react4xp-dependencies?${entryNames.join("&")}`)
+            .then(data => {
+                return data.json();
+            })
+            .then(dependencyUrls => {
+                [
+                    ...dependencyUrls,
+                    ...entryNames.map( name => `${rootUrl}/react4xp/${name}`)
+                ].forEach(
+                    url => loadDependencyUrl(url)
+                );
+            })
+            .then(()=>{
+                if (typeof callback === 'function') {
+                    callback();
+                }
+            })
+            .catch(error => {
+                console.log(error);
+            });
+    }
+};
+
+
 const getContainer = (targetId) => {
     let container = null;
     try {
@@ -20,9 +65,6 @@ const getContainer = (targetId) => {
 };
 
 
-//TODO: check out if this builds and @babel/polyfill works. If so, use the polyfilled async/await to fetch from service{app.name/}dependencies, and insert that retrieved string of HTML scripts into the page.
-THIS NEEDS TO HAPPEN: DEPENDENCY TRACKING! https://github.com/FormidableLabs/webpack-stats-plugin
-
 const getRenderable = (Component, props) => {
     return (typeof Component === 'function') ?
         Component(props) :
@@ -32,6 +74,7 @@ const getRenderable = (Component, props) => {
                 Component.default(props) :
                 Component.default;
 };
+
 
 
 export function render(Component, targetId, props) {
@@ -45,3 +88,4 @@ export function hydrate(Component, targetId, props) {
     const renderable = getRenderable(Component, props);
     ReactDOM.hydrate(renderable, container);
 };
+
