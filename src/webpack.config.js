@@ -7,6 +7,12 @@ const path = require('path');
 const Chunks2json = require('chunks-2-json-webpack-plugin');
 const webpack = require('webpack');
 
+const stripSlashesFromEnd = (path) => {
+    while (path.endsWith("\\") || path.endsWith('/')) {
+        path = path.substring(0, path.length - 1);
+    }
+};
+
 module.exports = env => {
     env = env || {};
 
@@ -17,7 +23,7 @@ module.exports = env => {
 
     // Gets the following constants from the config file UNLESS they are overridden by an env parameter, which takes priority:
     const {
-        BUILD_R4X, LIBRARY_NAME, BUILD_ENV, CHUNK_CONTENTHASH, CLIENT_CHUNKS_FILENAME
+        BUILD_R4X, LIBRARY_NAME, BUILD_ENV, CHUNK_CONTENTHASH, CLIENT_CHUNKS_FILENAME, SERVICE_ROOT_URL,
 
     } = Object.assign(
         {},
@@ -77,7 +83,8 @@ module.exports = env => {
         plugins: [
             new Chunks2json({outputDir: BUILD_R4X, filename: CLIENT_CHUNKS_FILENAME}),
             new webpack.DefinePlugin({
-                LIBRARY_NAME: JSON.stringify(LIBRARY_NAME)
+                LIBRARY_NAME: JSON.stringify(LIBRARY_NAME),
+                SERVICE_ROOT_URL: JSON.stringify(stripSlashesFromEnd(SERVICE_ROOT_URL))
             })
         ],
     };
