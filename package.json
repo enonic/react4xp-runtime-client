@@ -1,6 +1,6 @@
 {
     "name": "react4xp-runtime-client",
-    "version": "0.1.8",
+    "version": "0.1.9",
     "description": "React4xp helper: Webpack setup for building React4xp's client-side wrapper",
     "main": "webpack.config.js",
     "files": [
@@ -11,7 +11,7 @@
     "scripts": {
         "clean": "rimraf ./react4xpClient.es6 && rimraf ./webpack.config.js && rimraf build && rimraf test/output",
         "copy": "copyfiles --flat src/*.* .",
-        "test": "npm run clean && node_modules/webpack-cli/bin/cli.js --config src/webpack.config.js --env.BUILD_R4X=$(pwd)/test/output --env.LIBRARY_NAME=React4xp --env.CHUNK_CONTENTHASH=9 --env.CLIENT_CHUNKS_FILENAME=chunky.json",
+        "test": "npm run clean && node_modules/webpack-cli/bin/cli.js --config src/webpack.config.js --env.BUILD_R4X=$(pwd)/test/output --env.LIBRARY_NAME=React4xp --env.CHUNK_CONTENTHASH=9 --env.CLIENT_CHUNKS_FILENAME=chunky.json --env.SERVICE_ROOT_URL=/test/url",
         "prepublish": "npm run test && npm run clean && npm run copy",
         "postpublish": "npm run clean"
     },
@@ -42,7 +42,8 @@
         "babel-register": "^6.26.0",
         "react-dom": "^16.0.0",
         "webpack": "^4.29.0",
-        "webpack-cli": "^3.2.0"
+        "webpack-cli": "^3.2.0",
+        "react4xp-buildconstants": "^0.5.0"
     },
     "devDependencies": {
         "babel-core": "^6.26.3",

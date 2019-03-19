@@ -18,7 +18,7 @@ module.exports = env => {
 
     const overridden = (Object.keys(env).length !== 1 && Object.keys(env)[0] !== "REACT4XP_CONFIG_FILE");
     if  (overridden) {
-        console.log(__filename, " overrides: " + JSON.stringify(env, null, 2));
+        console.log(__filename, "overrides: " + JSON.stringify(env, null, 2));
     }
 
     // Gets the following constants from the config file UNLESS they are overridden by an env parameter, which takes priority:
@@ -34,7 +34,9 @@ module.exports = env => {
     );
 
     if  (overridden) {
-        console.log(__filename, "overridden config: " + JSON.stringify({ BUILD_R4X, LIBRARY_NAME, BUILD_ENV, CHUNK_CONTENTHASH, CLIENT_CHUNKS_FILENAME }, null, 2));
+        console.log(__filename, "overridden config: " + JSON.stringify({
+            BUILD_R4X, LIBRARY_NAME, BUILD_ENV, CHUNK_CONTENTHASH, CLIENT_CHUNKS_FILENAME, SERVICE_ROOT_URL,
+        }, null, 2));
     }
 
     // Decides whether or not to hash filenames of common-component chunk files, and the length of the hash
