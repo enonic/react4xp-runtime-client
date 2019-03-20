@@ -11,11 +11,15 @@ import ReactDOM from 'react-dom';
   * @param callback Optional function to run once all scripts are complete */
 function loadScripts(urls, callback) {
 
-    // Prevents a lot of bad input in one line: url is missing, null, an empty or only-spaces string, empty array or array where all the items are strings are with non-space with a single empty or only-spaces string
-    if (((urls || "") + "").replace(/,/g, '').trim() === "") {
+    // Prevents a lot of bad input in one check: allows an empty url array, but prevents it if url is missing, null, an empty or only-spaces string, or an array where none of the items contain characters other than spaces
+    if (
+        urls !== [] &&
+        ((urls || "") + "").replace(/,/g, '').trim() === ""
+    ) {
         console.error("Aborting: malformed 'urls' argument (all empty): " + JSON.stringify(urls));
         return;
     }
+
     if (typeof urls === "string") {
         urls = [urls];
     }
@@ -98,7 +102,7 @@ export function renderWithDependencies(entriesWithTargetIdsAndProps, callback) {
                             const script = document.createElement("script")
                             script.type = "text/javascript";
                             script.src = url;
-                            const inlineScript = document.createTextNode(`${LIBRARY_NAME}._CLIENT_.render(${LIBRARY_NAME}['${trimmedEntryName}'], ${JSON.stringify(entriesWithTargetIdsAndProps[entryName].targetId)}, ${JSON.stringify(entriesWithTargetIdsAndProps[entryName].props)})`);
+                            const inlineScript = document.createTextNode(`${LIBRARY_NAME}.CLIENT.render(${LIBRARY_NAME}['${trimmedEntryName}'], ${JSON.stringify(entriesWithTargetIdsAndProps[entryName].targetId)}, ${JSON.stringify(entriesWithTargetIdsAndProps[entryName].props)})`);
                             script.appendChild(inlineScript);
                             document.getElementsByTagName("head")[0].appendChild(script);
                         });
@@ -116,14 +120,14 @@ const getContainer = (targetId) => {
     let container = null;
     try {
         if (!targetId) {
-            throw Error(`${LIBRARY_NAME}._CLIENT_ can't mount component into target container: missing targetId`);
+            throw Error(`${LIBRARY_NAME}.CLIENT can't mount component into target container: missing targetId`);
         }
         container = document.getElementById(targetId);
 
     } catch (e) { console.error(e); }
 
     if (!container) {
-        throw Error(`${LIBRARY_NAME}._CLIENT_ can't mount component into target container: no DOM element with ID '${targetId}'`);
+        throw Error(`${LIBRARY_NAME}.CLIENT can't mount component into target container: no DOM element with ID '${targetId}'`);
     }
 
     return container;

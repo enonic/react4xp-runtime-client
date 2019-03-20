@@ -11,6 +11,7 @@ const stripSlashesFromEnd = (path) => {
     while (path.endsWith("\\") || path.endsWith('/')) {
         path = path.substring(0, path.length - 1);
     }
+    return path;
 };
 
 module.exports = env => {
@@ -57,7 +58,7 @@ module.exports = env => {
             path: BUILD_R4X,  // <-- Sets the base url for plugins and other target dirs.
             filename: chunkFileName,
             libraryTarget: 'var', 
-            library: [LIBRARY_NAME, '_CLIENT_'],
+            library: [LIBRARY_NAME, 'CLIENT'],
         },
 
         resolve: {
