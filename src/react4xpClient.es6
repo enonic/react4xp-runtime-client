@@ -75,17 +75,9 @@ function loadScripts(urls, callback) {
 }
 
 
-/** After all the dependency and entry source scripts have been loaded and run, it's time to call the render method on
-  * each entry. When those calls are finished, run the callback */
+/** After all the dependency and entry source scripts have been loaded and run, it's time to add script tags that call
+  * the render method on each entry, and finally one to run the callback */
 function runEntryCalls(entriesWithTargetIdsAndProps, entryNames, callback) {
-    let scriptsToComplete = entryNames.length;
-    function maybeCallback() {
-        scriptsToComplete -= 1;
-        if (scriptsToComplete < 1 && typeof callback === 'function') {
-            callback();
-        }
-    }
-
     entryNames.forEach(entryName => {
         const trimmedEntryName = (entryName || "").trim();
         if (trimmedEntryName === "") {
@@ -98,22 +90,19 @@ function runEntryCalls(entriesWithTargetIdsAndProps, entryNames, callback) {
             `${LIBRARY_NAME}.CLIENT.render(${LIBRARY_NAME}['${trimmedEntryName}'], ` +
             `${JSON.stringify(entriesWithTargetIdsAndProps[entryName].targetId)}, ` +
             `${JSON.stringify(entriesWithTargetIdsAndProps[entryName].props)})`);
-
-        if (script.readyState) {  //IE
-            script.onreadystatechange = () => {
-                if (script.readyState == "loaded" || script.readyState == "complete") {
-                    script.onreadystatechange = null;
-                    maybeCallback();
-                }
-            };
-        } else {  //Others
-            script.onload = maybeCallback;
-        }
-
         script.appendChild(inlineScript);
         document.getElementsByTagName("head")[0].appendChild(script);
     });
+
+    if (typeof callback === 'function') {
+        const script = document.createElement("script");
+        script.type = "text/javascript";
+        const inlineScript = document.createTextNode("(" + callback.toString() + ")();");
+        script.appendChild(inlineScript);
+        document.getElementsByTagName("head")[0].appendChild(script);
+    }
 }
+
 
 
 /** Takes an object entriesWithTargetIdsAndProps where the keys are entry names (jsxPath) and the values are
