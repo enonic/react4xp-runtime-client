@@ -1,8 +1,7 @@
+// SERVICE_ROOT_URL and LIBRARY_NAME are provided at buildtime by the react constants file via webpack:
+/* global LIBRARY_NAME, SERVICE_ROOT_URL */
+
 import ReactDOM from 'react-dom';
-
-//import "@babel/polyfill"
-
-// const SERVICE_ROOT_URL and LIBRARY_NAME are provided at buildtime by the react constants file via webpack
 
 /** Adjusted version of https://www.oreilly.com/library/view/high-performance-javascript/9781449382308/ch01.html#I_programlisting1_d1e1051
   * in order to parallelly load internally independent scripts from multiple urls, and only when they've ALL completely loaded
@@ -11,11 +10,22 @@ import ReactDOM from 'react-dom';
   * @param callback Optional function to run once all scripts are complete */
 function loadScripts(urls, callback) {
 
-    // Prevents a lot of bad input in one check: allows an empty url array, but prevents it if url is missing, null, an empty or only-spaces string, or an array where none of the items contain characters other than spaces
-    if (
-        urls !== [] &&
-        ((urls || "") + "").replace(/,/g, '').trim() === ""
-    ) {
+    let scriptsToComplete = 0;
+    function maybeCallback() {
+        scriptsToComplete -= 1;
+        if (scriptsToComplete < 1 && typeof callback === 'function') {
+            callback();
+        }
+    }
+
+    if (Array.isArray(urls) && urls.length === 0) {
+        maybeCallback();
+        return;
+    }
+
+    // Prevents a lot of bad input in one check (after handling an empty url array above): prevents it if url is missing,
+    // null, an empty or only-spaces string, or an array where none of the items contain characters other than spaces
+    if (((urls || "") + "").replace(/,/g, '').trim() === "") {
         console.error("Aborting: malformed 'urls' argument (all empty): " + JSON.stringify(urls));
         return;
     }
@@ -31,19 +41,13 @@ function loadScripts(urls, callback) {
         urls.indexOf(url) === index
     );
 
-    let scriptsToComplete = urls.length;
+    scriptsToComplete = urls.length;
 
-    function maybeCallback() {
-        scriptsToComplete -= 1;
-        if (scriptsToComplete === 0 && typeof callback === 'function') {
-            callback();
-        }
-    }
 
     try {
-        uniqueUrls.forEach(url => {
+        urls.forEach(url => {
             try {
-                const script = document.createElement("script")
+                const script = document.createElement("script");
                 script.type = "text/javascript";
 
                 if (script.readyState) {  //IE
@@ -71,6 +75,47 @@ function loadScripts(urls, callback) {
 }
 
 
+/** After all the dependency and entry source scripts have been loaded and run, it's time to call the render method on
+  * each entry. When those calls are finished, run the callback */
+function runEntryCalls(entriesWithTargetIdsAndProps, entryNames, callback) {
+    let scriptsToComplete = entryNames.length;
+    function maybeCallback() {
+        scriptsToComplete -= 1;
+        if (scriptsToComplete < 1 && typeof callback === 'function') {
+            callback();
+        }
+    }
+
+    entryNames.forEach(entryName => {
+        const trimmedEntryName = (entryName || "").trim();
+        if (trimmedEntryName === "") {
+            return;
+        }
+
+        const script = document.createElement("script");
+        script.type = "text/javascript";
+        const inlineScript = document.createTextNode(
+            `${LIBRARY_NAME}.CLIENT.render(${LIBRARY_NAME}['${trimmedEntryName}'], ` +
+            `${JSON.stringify(entriesWithTargetIdsAndProps[entryName].targetId)}, ` +
+            `${JSON.stringify(entriesWithTargetIdsAndProps[entryName].props)})`);
+
+        if (script.readyState) {  //IE
+            script.onreadystatechange = () => {
+                if (script.readyState == "loaded" || script.readyState == "complete") {
+                    script.onreadystatechange = null;
+                    maybeCallback();
+                }
+            };
+        } else {  //Others
+            script.onload = maybeCallback;
+        }
+
+        script.appendChild(inlineScript);
+        document.getElementsByTagName("head")[0].appendChild(script);
+    });
+}
+
+
 /** Takes an object entriesWithTargetIdsAndProps where the keys are entry names (jsxPath) and the values are
   * objects with a mandatory targetId attribute and an optional props attribute - which is a regular object of any shape.
   * Uses the entry names and the React4xp runtime to figure out urls for all necessary dependencies for rendering all the
@@ -91,29 +136,19 @@ export function renderWithDependencies(entriesWithTargetIdsAndProps, callback) {
                 return data.json();
             })
             .then(dependencyUrls => {
-                loadScripts(dependencyUrls, () => {
-                    loadScripts(entryNames.map(name => `${SERVICE_ROOT_URL}/react4xp/${name}`), () => {
-                        entryNames.forEach(entryName => {
-                            const trimmedEntryName = (entryName || "").trim();
-                            if (trimmedEntryName === "") {
-                                return;
-                            }
-
-                            const script = document.createElement("script")
-                            script.type = "text/javascript";
-                            script.src = url;
-                            const inlineScript = document.createTextNode(`${LIBRARY_NAME}.CLIENT.render(${LIBRARY_NAME}['${trimmedEntryName}'], ${JSON.stringify(entriesWithTargetIdsAndProps[entryName].targetId)}, ${JSON.stringify(entriesWithTargetIdsAndProps[entryName].props)})`);
-                            script.appendChild(inlineScript);
-                            document.getElementsByTagName("head")[0].appendChild(script);
-                        });
-                    });
-                });
+                loadScripts(
+                    dependencyUrls,
+                    () => loadScripts(
+                        entryNames.map(name => `${SERVICE_ROOT_URL}/react4xp/${name}`),
+                        () => runEntryCalls(entriesWithTargetIdsAndProps, entryNames, callback),
+                    )
+                );
             })
             .catch(error => {
                 console.log(error);
             });
     }
-};
+}
 
 
 const getContainer = (targetId) => {
@@ -150,11 +185,10 @@ export function render(Component, targetId, props) {
     const container = getContainer(targetId);
     const renderable = getRenderable(Component, props);
     ReactDOM.render(renderable, container);
-};
+}
 
 export function hydrate(Component, targetId, props) {
     const container = getContainer(targetId);
     const renderable = getRenderable(Component, props);
     ReactDOM.hydrate(renderable, container);
-};
-
+}
