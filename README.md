@@ -2,6 +2,7 @@
 
 **React4xp helper: Webpack setup for building React4xp's wrapper for client-side rendering, hydrating and dependency loading.**
 
+Runs in the browser, communicates with Enonic XP to render React4xp components and dependencies, all fetched through React4xp services. These services are bundled in the [lib-react4xp-runtime library](https://github.com/enonic/lib-react4xp-runtime), which uses _this_ package to build its out-of-the-box client. This means you don't need to use this package unless you're customizing your setup.
 
 ## Installation
 
@@ -24,7 +25,7 @@ webpack --config node_modules/react4xp-runtime-client/webpack.config.js --env.RE
   - `SERVICE_ROOT_URL`
   
 
-Each of these can also be submitted to `webpack.config.js` with their own `--env.*` parameter in the command line, overriding the value from the config file. If all of them are covered, the config file reference is not needed to build the client ([lib-react4xp-runtime](https://github.com/enonic/lib-react4xp-runtime) builds its standard included client this way, from this package).
+Each of these can also be submitted to `webpack.config.js` with their own `--env.*` parameter in the command line, overriding the value from the config file. If all of them are covered, the config file reference is not needed to build the client.
 
 ## Output
 
