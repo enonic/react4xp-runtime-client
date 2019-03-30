@@ -1,7 +1,0 @@
-{
-    "BUILD_R4X": "insertYourAbsolutePathHereForTesting/test/output", 
-    "LIBRARY_NAME": "React4xpTesting", 
-    "BUILD_ENV": "production",
-    "CHUNK_CONTENTHASH": 9,
-    "CLIENT_CHUNKS_FILENAME": "chunkyclient.json"
-}

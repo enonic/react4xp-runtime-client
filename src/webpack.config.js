@@ -7,17 +7,24 @@ const path = require('path');
 const Chunks2json = require('chunks-2-json-webpack-plugin');
 const webpack = require('webpack');
 
+const stripSlashesFromEnd = (path) => {
+    while (path.endsWith("\\") || path.endsWith('/')) {
+        path = path.substring(0, path.length - 1);
+    }
+    return path;
+};
+
 module.exports = env => {
     env = env || {};
 
     const overridden = (Object.keys(env).length !== 1 && Object.keys(env)[0] !== "REACT4XP_CONFIG_FILE");
     if  (overridden) {
-        console.log(__filename, " overrides: " + JSON.stringify(env, null, 2));
+        console.log(__filename, "overrides: " + JSON.stringify(env, null, 2));
     }
 
     // Gets the following constants from the config file UNLESS they are overridden by an env parameter, which takes priority:
     const {
-        BUILD_R4X, LIBRARY_NAME, BUILD_ENV, CHUNK_CONTENTHASH, CLIENT_CHUNKS_FILENAME
+        BUILD_R4X, LIBRARY_NAME, BUILD_ENV, CHUNK_CONTENTHASH, CLIENT_CHUNKS_FILENAME, SERVICE_ROOT_URL,
 
     } = Object.assign(
         {},
@@ -28,7 +35,9 @@ module.exports = env => {
     );
 
     if  (overridden) {
-        console.log(__filename, "overridden config: " + JSON.stringify({ BUILD_R4X, LIBRARY_NAME, BUILD_ENV, CHUNK_CONTENTHASH, CLIENT_CHUNKS_FILENAME }, null, 2));
+        console.log(__filename, "overridden config: " + JSON.stringify({
+            BUILD_R4X, LIBRARY_NAME, BUILD_ENV, CHUNK_CONTENTHASH, CLIENT_CHUNKS_FILENAME, SERVICE_ROOT_URL,
+        }, null, 2));
     }
 
     // Decides whether or not to hash filenames of common-component chunk files, and the length of the hash
@@ -49,7 +58,7 @@ module.exports = env => {
             path: BUILD_R4X,  // <-- Sets the base url for plugins and other target dirs.
             filename: chunkFileName,
             libraryTarget: 'var', 
-            library: [LIBRARY_NAME, '_CLIENT_'],
+            library: [LIBRARY_NAME, 'CLIENT'],
         },
 
         resolve: {
@@ -77,7 +86,8 @@ module.exports = env => {
         plugins: [
             new Chunks2json({outputDir: BUILD_R4X, filename: CLIENT_CHUNKS_FILENAME}),
             new webpack.DefinePlugin({
-                LIBRARY_NAME: JSON.stringify(LIBRARY_NAME)
+                LIBRARY_NAME: JSON.stringify(LIBRARY_NAME),
+                SERVICE_ROOT_URL: JSON.stringify(stripSlashesFromEnd(SERVICE_ROOT_URL))
             })
         ],
     };
