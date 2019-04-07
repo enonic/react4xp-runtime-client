@@ -1,12 +1,13 @@
 {
     "name": "react4xp-runtime-client",
-    "version": "0.3.0",
+    "version": "0.3.1",
     "description": "React4xp helper: Webpack setup for building React4xp's client-side wrapper",
     "main": "webpack.config.js",
     "files": [
         "react4xpClient.es6",
         "webpack.config.js",
-        "README.md"
+        "README.md",
+        "LICENSE"
     ],
     "scripts": {
         "clean": "rimraf ./react4xpClient.es6 && rimraf ./webpack.config.js && rimraf build && rimraf test/output",
@@ -43,7 +44,7 @@
         "react-dom": "^16.0.0",
         "webpack": "^4.29.0",
         "webpack-cli": "^3.2.0",
-        "react4xp-buildconstants": "^0.5.0"
+        "react4xp-buildconstants": "^0.7.1"
     },
     "devDependencies": {
         "babel-core": "^6.26.3",
