@@ -2,7 +2,7 @@
 
 **React4xp helper: Webpack setup for building React4xp's wrapper for client-side rendering, hydrating and dependency loading.**
 
-Runs in the browser, communicates with Enonic XP to render React4xp components and dependencies, all fetched through React4xp services. These services are bundled in the [lib-react4xp-runtime library](https://github.com/enonic/lib-react4xp-runtime), which uses _this_ package to build its out-of-the-box client. This means you don't need to use this package unless you're customizing your setup.
+Runs in the browser, communicates with Enonic XP to render React4xp components and dependencies, all fetched through React4xp services. These services are bundled in the [lib-react4xp library](https://github.com/enonic/lib-react4xp), which uses _this_ package to build its out-of-the-box client. This means you don't need to use this package unless you're customizing your setup.
 
 ## Installation
 
@@ -22,7 +22,6 @@ webpack --config node_modules/react4xp-runtime-client/webpack.config.js --env.RE
   - `LIBRARY_NAME`
   - `CHUNK_CONTENTHASH` 
   - `CLIENT_CHUNKS_FILENAME`
-  - `SERVICE_ROOT_URL`
   
 
 Each of these can also be submitted to `webpack.config.js` with their own `--env.*` parameter in the command line, overriding the value from the config file. If all of them are covered, the config file reference is not needed to build the client.
@@ -41,7 +40,7 @@ Running `react4xpClient.<HASH>.js` in a browser adds the object `React4xp` (or w
 
   - `React4xp.CLIENT.render(Component, targetId [, props])`: corresponds to `ReactDOM.render`
   - `React4xp.CLIENT.hydrate(Component, targetId [, props])`: corresponds to `ReactDOM.hydrate`
-  - `React4xp.CLIENT.renderWithDependencies(componentsTargetsAndProps [, callback])`
+  - `React4xp.CLIENT.renderWithDependencies(componentsTargetsAndProps [, callback [, serviceUrlRoot]])`
 
 The first two methods are 'pure' renderers. This means that in addition to this client script, you need to supply and run scripts for React and ReactDOM (which may be bundled into [React4xp externals](https://www.npmjs.com/package/react4xp-runtime-externals)) - and **scripts for the entries as well as all their chunks**, before calling `render` or `hydrate`. Using React4xp from XP components will automate this for you.
 
@@ -77,3 +76,4 @@ This will contact the React4xp service, determine what the entries' chunk depend
 Signature:
   - `componentsTargetsAndProps`: mandatory object where each entry is similar to the `Component, targetId, [, props]` signature mentioned above: the key strings are names ([jsxPaths](https://www.npmjs.com/package/react4xp-build-components#using-the-entries)) of React4xp components that are available from the React4xp service. The values are objects that have a mandatory `targetId` string and an optional `props` object.
   - `callback`: optional function that is run after running `render`. 
+  - `serviceUrlRoot`: root of the URL to the react4xp and react4xp-dependencies services. E.g. if they have the URLs `/_/service/my.app/react4xp/` and `/_/service/my.app/react4xp-dependencies/`, then `serviceRootUrl` should be `/_/service/my.app` (without a trailing slash). This is sort of optional: you can define a constant `SERVICE_URL_ROOT` in global namespace before running this method without the final argument. If you don't, it's a mandatory argument. 

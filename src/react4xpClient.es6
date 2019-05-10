@@ -1,5 +1,5 @@
-// SERVICE_ROOT_URL and LIBRARY_NAME are provided at buildtime by the react constants file via webpack:
-/* global LIBRARY_NAME, SERVICE_ROOT_URL */
+// LIBRARY_NAME is provided at buildtime by the react constants file via webpack, SERVICE_URL_ROOT may or may not be added globally:
+/* global LIBRARY_NAME, SERVICE_URL_ROOT */
 
 import ReactDOM from 'react-dom';
 
@@ -111,8 +111,12 @@ function runEntryCalls(entriesWithTargetIdsAndProps, entryNames, callback) {
   * entries, then loads and runs the dependencies, loads and runs the entry component scripts and finally triggers the
   * rendering of the entries - in the order of the entry name keys in the entriesWithTargetIdsAndProps parameter.
   * @param entriesWithTargetIdsAndProps Mandatory object, { <entryName> -> { targetId: string, props: { ... react props for the entry}}}
-  * @param callback Optional function called after (and blocked by) the entire call chain. */
-export function renderWithDependencies(entriesWithTargetIdsAndProps, callback) {
+  * @param callback Optional function called after the entire call chain.
+  * @param serviceUrlRoot Root of the URL to the react4xp and react4xp-dependencies services. E.g. if they have the URLs
+  * /_/service/my.app/react4xp/ and /_/service/my.app/react4xp-dependencies/, then serviceRootUrl should be /_/service/my.app (without
+  * a trailing slash). Optional, sort of: you can define the constant SERVICE_URL_ROOT in global namespace and skip it. If you don't,
+  * it's mandatory. */
+export function renderWithDependencies(entriesWithTargetIdsAndProps, callback, serviceUrlRoot) {
     const entries = Object.keys(entriesWithTargetIdsAndProps) || [];
 
     const entryNames = entries
@@ -120,7 +124,15 @@ export function renderWithDependencies(entriesWithTargetIdsAndProps, callback) {
         .filter(name => name !== "");
 
     if (entryNames.length > 0) {
-        fetch(`${SERVICE_ROOT_URL}/react4xp-dependencies?${entryNames.join("&")}`)
+        if (!serviceUrlRoot) {
+            if (typeof SERVICE_URL_ROOT === 'undefined') {
+                throw Error("Missing service URL root. Include it as a last argument " +
+                    "or set a global variable constant SERVICE_URL_ROOT before calling renderWithDependencies.");
+            }
+            serviceUrlRoot = SERVICE_URL_ROOT;
+        }
+
+        fetch(`${serviceUrlRoot}/react4xp-dependencies?${entryNames.join("&")}`)
             .then(data => {
                 return data.json();
             })
@@ -128,7 +140,7 @@ export function renderWithDependencies(entriesWithTargetIdsAndProps, callback) {
                 loadScripts(
                     dependencyUrls,
                     () => loadScripts(
-                        entryNames.map(name => `${SERVICE_ROOT_URL}/react4xp/${name}`),
+                        entryNames.map(name => `${serviceUrlRoot}/react4xp/${name}`),
                         () => runEntryCalls(entriesWithTargetIdsAndProps, entryNames, callback),
                     )
                 );
