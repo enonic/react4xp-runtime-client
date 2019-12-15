@@ -182,13 +182,13 @@ const getRenderable = (Component, props) => {
 
 
 
-export function render(Component, targetId, props) {
+export function render(Component, targetId, props, isPage, hasRegions) {
     const container = getContainer(targetId);
     const renderable = getRenderable(Component, props);
     ReactDOM.render(renderable, container);
 }
 
-export function hydrate(Component, targetId, props) {
+export function hydrate(Component, targetId, props, isPage, hasRegions) {
     const container = getContainer(targetId);
     const renderable = getRenderable(Component, props);
     ReactDOM.hydrate(renderable, container);
