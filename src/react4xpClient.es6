@@ -180,21 +180,102 @@ const getRenderable = (Component, props) => {
                 Component.default;
 };
 
-const postFillUnrenderedRegions = (props) => {
+
+const postFillBody = (component, json, region, regionName, regionsBuffer, regionsRemaining) => {
+    if (json.body) {
+        // TODO: Error if no body?
+        const compTag = `<!--# COMPONENT ${component.path} -->`.replace(/\//g, '\/');
+
+        regionsBuffer[regionName] = regionsBuffer[regionName].replace(new RegExp(compTag), json.body);
+
+        if (regionsRemaining[regionName] === 0) {
+            region.innerHTML = regionsBuffer[regionName];
+        }
+    }
+};
+
+
+const makeChild = pgContrib => {
+    if (!pgContrib) {
+        return null;
+    }
+    const html = Array.isArray(pgContrib) ?
+        pgContrib.join('\n') :
+        pgContrib;
+    if (typeof html !== 'string') {
+        throw Error(`Expected string array or string. React4xp cant't produce page contribution element from ${JSON.stringify(pgContrib)}`)
+    }
+
+    var div = document.createElement('div');
+    div.innerHTML = html;
+    return div.childNodes;
+};
+
+const getTargetElement = tag => {
+    const elements = document.getElementsByTagName(tag);
+    if (elements.length > 1) {
+        throw Error(`Expected there to be only one <${tag}> element in the document. There are in fact ${elements.length}.`);
+    }
+    if (elements.length < 1 || !elements[0]) {
+        throw Error(`Couldn't find a <${tag}> element in the document.`);
+    }
+    return elements[0];
+};
+
+const append = (newElements, targetElement) => {
+    if (newElements) {
+        for (let i = 0; i < newElements.length; i++) {
+            targetElement.appendChild(newElements[i]);
+        }
+    }
+};
+
+const prepend = (newElements, targetElement) => {
+    if (newElements) {
+        const first = targetElement.firstChild;
+        for (let i = 0; i < newElements.length; i++) {
+            if (first) {
+                targetElement.insertBefore(newElements[i], first);
+            } else {
+                targetElement.appendChild(newElements[i]);
+            }
+        }
+    }
+};
+
+const PAGECONTRIBUTION_FUNCS = {
+    headBegin: (child) => prepend(child, getTargetElement('head')),
+    headEnd: (child) => append(child, getTargetElement('head')),
+    bodyBegin: (child) => prepend(child, getTargetElement('body')),
+    bodyEnd: (child) => append(child, getTargetElement('body')),
+};
+
+const postFillPageContributions = (json) => {
+    if (json.pageContributions) {
+        ['headBegin', 'headEnd', 'bodyBegin', 'bodyEnd'].forEach(pgKey => {
+            const insertHtml = json.pageContributions[pgKey];
+            if (insertHtml) {
+                PAGECONTRIBUTION_FUNCS[pgKey](makeChild(insertHtml));
+            }
+        })
+    }
+};
+
+
+const postFillRegions = (props) => {
 
     // If hasRegions, render iterates regions and their components, makes a call to lib-react4xp-service react4xp-component for each, looks for body and pageContributions. If body exists, replaces the corresponding tag with body. Runs pageContributions.
-        console.log("Has regions, yo.");
         const regionsBuffer = {};
         const regionsRemaining = {};
         Object.keys(props.regionsData || {}).forEach( regionName => {
             const components = props.regionsData[regionName].components || [];
             const region = document.querySelectorAll(`[data-portal-region='${regionName}']`)[0];
 
-            console.log(`\nregion '${regionName}':`, region);
+            //console.log(`\nregion '${regionName}':`, region);
             // TODO: check for length !== 1
             regionsBuffer[regionName] = region.innerHTML;
             regionsRemaining[regionName] = components.length;
-            console.log("regionHTML:", regionsBuffer[regionName]);
+            //console.log("regionHTML:", regionsBuffer[regionName]);
 
             components.forEach( component => {
                 const [app, compName] = ((component.descriptor || '') + '').split(':');
@@ -208,13 +289,6 @@ const postFillUnrenderedRegions = (props) => {
                 params.append('type', component.type);
                 const url = `/_/service/${app}/react4xp-component?${params.toString()}`;
 
-                console.log("url (" +
-                    (Array.isArray(url) ?
-                            ("array[" + url.length + "]") :
-                            (typeof url + (url && typeof url === 'object' ? (" with keys: " + JSON.stringify(Object.keys(url))) : ""))
-                    ) + "): " + JSON.stringify(url, null, 2)
-                );
-
                 fetch(
                     url,
                     {
@@ -224,28 +298,14 @@ const postFillUnrenderedRegions = (props) => {
                         return data.json();
                     })
                     .then(json => {
-                        console.log("Got some JSON:", json);
+                        // console.log("Got some JSON:", json);
 
-                        if (json.body) {
-                            // TODO: Error if no body?
-                            const compTag = `<!--# COMPONENT ${component.path} -->`.replace(/\//g, '\/');
-                            console.log("compTag:", compTag);
-
-                            regionsBuffer[regionName] = regionsBuffer[regionName].replace(new RegExp(compTag), json.body);
-                            console.log("regionHTML:", regionsBuffer[regionName]);
-
-                            regionsRemaining[regionName] -= 1;
-                            if (regionsRemaining[regionName] === 0) {
-                                console.log("Finally, region:", region.innerHTML);
-                                console.log("Final regionHTML:", regionsBuffer[regionName]);
-                                region.innerHTML = regionsBuffer[regionName];
-                                console.log("--Result region:", region);
-                            }
-                        }
-
+                        regionsRemaining[regionName] -= 1;
+                        postFillBody(component, json, region, regionName, regionsBuffer, regionsRemaining);
+                        postFillPageContributions(json);
                     })
                     .catch(error => {
-                        console.log(error);
+                        console.error(error);
                     });
             });
 
@@ -258,7 +318,7 @@ export function render(Component, targetId, props, isPage, hasRegions) {
     ReactDOM.render(renderable, container);
 
     if (hasRegions) {
-        postFillUnrenderedRegions(props);
+        postFillRegions(props);
     }
 
 }
