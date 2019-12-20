@@ -186,6 +186,56 @@ export function render(Component, targetId, props, isPage, hasRegions) {
     const container = getContainer(targetId);
     const renderable = getRenderable(Component, props);
     ReactDOM.render(renderable, container);
+
+    // If hasRegions, render iterates regions and their components, makes a call to lib-react4xp-service react4xp-component for each, looks for body and pageContributions. If body exists, replaces the corresponding tag with body. Runs pageContributions.
+    if (hasRegions) {
+        const regionsBuffer = {};
+        Object.keys(props.regionsData || {}).forEach( regionName => {
+            const components = props.regionsData[regionName].components || [];
+            const region = document.querySelectorAll(`[data-portal-region='${regionName}']`)[0];
+
+            // TODO: check for length !== 1
+            regionsBuffer[regionName] = region.innerHTML;
+
+            components.forEach( (component, i) => {
+                const [app, compName] = ((component.descriptor || '') + '').split(':');
+                if (!app || !compName) {
+                    throw Error("Missing or malformed descriptor - React4xp expected a .descriptor attribute like '<enonicXpAppName>:<componentName>, and therefore couldn't properly client-side-render this component: ", component);
+                }
+
+                const params = new URLSearchParams();
+                params.append('compName', compName);
+                params.append('config', JSON.stringify(component.config));
+                params.append('type', component.type);
+                const url = `/_/service/${app}/react4xp-component?${params.toString()}`;
+
+                fetch(
+                    url,
+                    {
+                        method: 'GET'
+                    })
+                    .then(data => {
+                        return data.json();
+                    })
+                    .then(json => {
+                        if (json.body) {
+                            // TODO: Error if no body?
+                            const compTag = `<!--# COMPONENT ${component.path} -->`.replace(/\//g, '\/');
+                            regionsBuffer[regionName] = regionsBuffer[regionName].replace(new RegExp(compTag), json.body);
+
+                            if (i === components.length - 1) {
+                                region.innerHTML = regionsBuffer[regionName];
+                            }
+                        }
+
+                    })
+                    .catch(error => {
+                        console.log(error);
+                    });
+            });
+
+        });
+    }
 }
 
 export function hydrate(Component, targetId, props, isPage, hasRegions) {
