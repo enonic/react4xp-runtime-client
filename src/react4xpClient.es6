@@ -180,24 +180,23 @@ const getRenderable = (Component, props) => {
                 Component.default;
 };
 
-
-
-export function render(Component, targetId, props, isPage, hasRegions) {
-    const container = getContainer(targetId);
-    const renderable = getRenderable(Component, props);
-    ReactDOM.render(renderable, container);
+const postFillUnrenderedRegions = (props) => {
 
     // If hasRegions, render iterates regions and their components, makes a call to lib-react4xp-service react4xp-component for each, looks for body and pageContributions. If body exists, replaces the corresponding tag with body. Runs pageContributions.
-    if (hasRegions) {
+        console.log("Has regions, yo.");
         const regionsBuffer = {};
+        const regionsRemaining = {};
         Object.keys(props.regionsData || {}).forEach( regionName => {
             const components = props.regionsData[regionName].components || [];
             const region = document.querySelectorAll(`[data-portal-region='${regionName}']`)[0];
 
+            console.log(`\nregion '${regionName}':`, region);
             // TODO: check for length !== 1
             regionsBuffer[regionName] = region.innerHTML;
+            regionsRemaining[regionName] = components.length;
+            console.log("regionHTML:", regionsBuffer[regionName]);
 
-            components.forEach( (component, i) => {
+            components.forEach( component => {
                 const [app, compName] = ((component.descriptor || '') + '').split(':');
                 if (!app || !compName) {
                     throw Error("Missing or malformed descriptor - React4xp expected a .descriptor attribute like '<enonicXpAppName>:<componentName>, and therefore couldn't properly client-side-render this component: ", component);
@@ -209,6 +208,13 @@ export function render(Component, targetId, props, isPage, hasRegions) {
                 params.append('type', component.type);
                 const url = `/_/service/${app}/react4xp-component?${params.toString()}`;
 
+                console.log("url (" +
+                    (Array.isArray(url) ?
+                            ("array[" + url.length + "]") :
+                            (typeof url + (url && typeof url === 'object' ? (" with keys: " + JSON.stringify(Object.keys(url))) : ""))
+                    ) + "): " + JSON.stringify(url, null, 2)
+                );
+
                 fetch(
                     url,
                     {
@@ -218,13 +224,22 @@ export function render(Component, targetId, props, isPage, hasRegions) {
                         return data.json();
                     })
                     .then(json => {
+                        console.log("Got some JSON:", json);
+
                         if (json.body) {
                             // TODO: Error if no body?
                             const compTag = `<!--# COMPONENT ${component.path} -->`.replace(/\//g, '\/');
-                            regionsBuffer[regionName] = regionsBuffer[regionName].replace(new RegExp(compTag), json.body);
+                            console.log("compTag:", compTag);
 
-                            if (i === components.length - 1) {
+                            regionsBuffer[regionName] = regionsBuffer[regionName].replace(new RegExp(compTag), json.body);
+                            console.log("regionHTML:", regionsBuffer[regionName]);
+
+                            regionsRemaining[regionName] -= 1;
+                            if (regionsRemaining[regionName] === 0) {
+                                console.log("Finally, region:", region.innerHTML);
+                                console.log("Final regionHTML:", regionsBuffer[regionName]);
                                 region.innerHTML = regionsBuffer[regionName];
+                                console.log("--Result region:", region);
                             }
                         }
 
@@ -235,7 +250,17 @@ export function render(Component, targetId, props, isPage, hasRegions) {
             });
 
         });
+}
+
+export function render(Component, targetId, props, isPage, hasRegions) {
+    const container = getContainer(targetId);
+    const renderable = getRenderable(Component, props);
+    ReactDOM.render(renderable, container);
+
+    if (hasRegions) {
+        postFillUnrenderedRegions(props);
     }
+
 }
 
 export function hydrate(Component, targetId, props, isPage, hasRegions) {
