@@ -195,20 +195,21 @@ const postFillBody = (component, json, region, regionName, regionsBuffer, region
 };
 
 
-const makeChild = pgContrib => {
-    if (!pgContrib) {
+const makeElementArrayAndRange = (insertHtml, targetElement) => {
+    if (!insertHtml) {
         return null;
     }
-    const html = Array.isArray(pgContrib) ?
-        pgContrib.join('\n') :
-        pgContrib;
+    const html = Array.isArray(insertHtml) ?
+        insertHtml.join('\n') :
+        insertHtml;
     if (typeof html !== 'string') {
-        throw Error(`Expected string array or string. React4xp cant't produce page contribution element from ${JSON.stringify(pgContrib)}`)
+        throw Error(`Expected string array or string. React4xp cant't produce page contribution element from ${JSON.stringify(insertHtml)}`)
     }
 
-    var div = document.createElement('div');
-    div.innerHTML = html;
-    return div.childNodes;
+    const range = document.createRange();
+    range.selectNode(targetElement);
+
+    return [insertHtml, range];
 };
 
 const getTargetElement = tag => {
@@ -222,32 +223,34 @@ const getTargetElement = tag => {
     return elements[0];
 };
 
-const append = (newElements, targetElement) => {
-    if (newElements) {
-        for (let i = 0; i < newElements.length; i++) {
-            targetElement.appendChild(newElements[i]);
-        }
+const append = (insertHtml, targetElement) => {
+    const [htmlArray, range] = makeElementArrayAndRange(insertHtml, targetElement);
+
+    if (htmlArray) {
+        var documentFragment = range.createContextualFragment(htmlArray);
+        targetElement.appendChild(documentFragment);
     }
 };
 
-const prepend = (newElements, targetElement) => {
-    if (newElements) {
+const prepend = (insertHtml, targetElement) => {
+    const [htmlArray, range] = makeElementArrayAndRange(insertHtml, targetElement);
+
+    if (htmlArray) {
         const first = targetElement.firstChild;
-        for (let i = 0; i < newElements.length; i++) {
-            if (first) {
-                targetElement.insertBefore(newElements[i], first);
-            } else {
-                targetElement.appendChild(newElements[i]);
-            }
+        var documentFragment = range.createContextualFragment(htmlArray);
+        if (first) {
+            targetElement.insertBefore(documentFragment, first);
+        } else {
+            targetElement.appendChild(documentFragment);
         }
     }
 };
 
 const PAGECONTRIBUTION_FUNCS = {
-    headBegin: (child) => prepend(child, getTargetElement('head')),
-    headEnd: (child) => append(child, getTargetElement('head')),
-    bodyBegin: (child) => prepend(child, getTargetElement('body')),
-    bodyEnd: (child) => append(child, getTargetElement('body')),
+    headBegin: (insertHtml) => prepend(insertHtml, getTargetElement('head')),
+    headEnd: (insertHtml) => append(insertHtml, getTargetElement('head')),
+    bodyBegin: (insertHtml) => prepend(insertHtml, getTargetElement('body')),
+    bodyEnd: (insertHtml) => append(insertHtml, getTargetElement('body')),
 };
 
 const postFillPageContributions = (json) => {
@@ -255,7 +258,7 @@ const postFillPageContributions = (json) => {
         ['headBegin', 'headEnd', 'bodyBegin', 'bodyEnd'].forEach(pgKey => {
             const insertHtml = json.pageContributions[pgKey];
             if (insertHtml) {
-                PAGECONTRIBUTION_FUNCS[pgKey](makeChild(insertHtml));
+                PAGECONTRIBUTION_FUNCS[pgKey](insertHtml);
             }
         })
     }
