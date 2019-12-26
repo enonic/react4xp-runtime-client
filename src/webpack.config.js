@@ -80,6 +80,9 @@ module.exports = env => {
             new Chunks2json({outputDir: BUILD_R4X, filename: CLIENT_CHUNKS_FILENAME}),
             new webpack.DefinePlugin({
                 LIBRARY_NAME: JSON.stringify(LIBRARY_NAME),
+                DEVMODE_WARN_AGAINST_CLIENTRENDERED_REGIONS: BUILD_ENV === 'production' ?
+                    '' :
+                    '\nregionPathsPostfilled.push(component.path);\nif (!regionsRemaining[regionName] && regionPathsPostfilled.length) {\n\tconsole.warn(`React4xp postfilled ${regionPathsPostfilled.length} component(s). This is an attempted fallback, compensating for when React4xp is client-side-rendering an XP page/layout that contains regions. In this case, the components in the regions need to be filled in by the server in a second rendering step. NOTE: Currently, this extra step will only get the HTML of the component. If the component has pageContributions, these will be omitted. Recommended: avoid using React4xp client-side-rendering for a region container (i.e. page/layout) where the region(s) has component(s) that need pageContributions to work. Component path(s): ${JSON.stringify(regionPathsPostfilled)}`);\n}'
             }),
         ],
     };
