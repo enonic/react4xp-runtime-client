@@ -37,15 +37,15 @@
         "@babel/core": "^7",
         "@babel/plugin-proposal-object-rest-spread": "^7",
         "@babel/plugin-transform-arrow-functions": "^7",
+        "@babel/polyfill": "*",
         "@babel/preset-env": "^7",
         "@babel/preset-react": "^7",
-        "babel-loader": "^8",
-        "babel-polyfill": "*",
         "@babel/register": "*",
+        "babel-loader": "^8",
         "react-dom": "*",
         "webpack": "^4",
         "webpack-cli": "^3",
-        "react4xp-buildconstants": "^0.7.4"
+        "react4xp-buildconstants": "*"
     },
     "devDependencies": {
         "@babel/cli": "^7.7.7",
