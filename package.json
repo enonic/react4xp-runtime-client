@@ -1,6 +1,6 @@
 {
     "name": "react4xp-runtime-client",
-    "version": "0.4.1-SNAPSHOT",
+    "version": "0.5.0-SNAPSHOT",
     "description": "React4xp helper: Webpack setup for building React4xp's client-side wrapper",
     "main": "webpack.config.js",
     "files": [
@@ -44,8 +44,7 @@
         "babel-loader": "^8",
         "react-dom": "*",
         "webpack": "^4",
-        "webpack-cli": "^3",
-        "react4xp-buildconstants": "*"
+        "webpack-cli": "^3"
     },
     "devDependencies": {
         "@babel/cli": "^7.7.7",

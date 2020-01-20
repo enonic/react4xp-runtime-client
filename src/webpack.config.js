@@ -23,7 +23,7 @@ module.exports = env => {
         {},
         env,
         env.REACT4XP_CONFIG_FILE ?
-            require(env.REACT4XP_CONFIG_FILE) :
+            require(path.join(process.cwd(), env.REACT4XP_CONFIG_FILE)) :
             {}
     );
 
