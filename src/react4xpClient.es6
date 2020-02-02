@@ -276,6 +276,10 @@ const postFillRegions = (props) => {
 
             // TODO: check for length !== 1
             const region = document.querySelectorAll(`[data-portal-region='${regionName}']`)[0];
+            if (!region) {
+                console.error(`Expected region name attribute not found in document: data-portal-region="${regionName}"`);
+                return;
+            }
 
             regionsBuffer[regionName] = region.innerHTML;
             regionsRemaining[regionName] = components.length;
@@ -340,6 +344,14 @@ const postFillRegions = (props) => {
 export function render(Component, targetId, props, isPage, hasRegions) {
     const container = getContainer(targetId);
     const renderable = getRenderable(Component, props);
+
+    console.log("Got renderable (" +
+    	(Array.isArray(renderable) ?
+    		("array[" + renderable.length + "]") :
+    		(typeof renderable + (renderable && typeof renderable === 'object' ? (" with keys: " + JSON.stringify(Object.keys(renderable))) : ""))
+    	) + "): " + JSON.stringify(renderable, null, 2)
+    );
+
     ReactDOM.render(renderable, container);
 
     if (hasRegions) {
