@@ -146,7 +146,7 @@ export function renderWithDependencies(entriesWithTargetIdsAndProps, callback, s
                 );
             })
             .catch(error => {
-                console.log(error);
+                console.error(error);
             });
     }
 }
@@ -283,7 +283,6 @@ const postFillRegions = (props) => {
 
             regionsBuffer[regionName] = region.innerHTML;
             regionsRemaining[regionName] = components.length;
-            const regionPathsPostfilled = []; // eslint-disable-line
 
             components.forEach( component => {
                 if (!component || typeof  component !== 'object' || Array.isArray(component) || !Object.keys(component).length) {
@@ -316,9 +315,6 @@ const postFillRegions = (props) => {
                         return data.text();
                     })
                     .then(text => {
-                        // console.log("Got some JSON:", json);
-
-
                         regionsRemaining[regionName] -= 1;
                         postFillBody(component.path, text, region, regionName, regionsBuffer, regionsRemaining);
                         // postFillPageContributions(json);
@@ -349,4 +345,9 @@ export function hydrate(Component, targetId, props, isPage, hasRegions) {
     const container = getContainer(targetId);
     const renderable = getRenderable(Component, props);
     ReactDOM.hydrate(renderable, container);
+
+    // TODO: Untested, may or may not work...
+    if (hasRegions) {
+        postFillRegions(props);
+    }
 }
