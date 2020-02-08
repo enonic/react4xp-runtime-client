@@ -284,6 +284,9 @@ const postFillRegions = (props) => {
             regionsBuffer[regionName] = region.innerHTML;
             regionsRemaining[regionName] = components.length;
 
+            // Used in dev mode for constructing the inserted postfill console warning (see webpack.config.js):
+            const regionPathsPostfilled = []; // eslint-disable-line
+
             components.forEach( component => {
                 if (!component || typeof  component !== 'object' || Array.isArray(component) || !Object.keys(component).length) {
                     throw Error(`React4xp couldn't postfill component. Components array has an item that is empty or a non-object: ${JSON.stringify(components)}`);
@@ -345,9 +348,4 @@ export function hydrate(Component, targetId, props, isPage, hasRegions) {
     const container = getContainer(targetId);
     const renderable = getRenderable(Component, props);
     ReactDOM.hydrate(renderable, container);
-
-    // TODO: Untested, may or may not work...
-    if (hasRegions) {
-        postFillRegions(props);
-    }
 }
