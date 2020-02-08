@@ -295,6 +295,13 @@ const postFillRegions = (props) => {
                     throw Error("Missing or malformed descriptor - React4xp expected a .descriptor attribute like '<enonicXpAppName>:<componentName>, and therefore couldn't properly client-side-render this component: ", component);
                 }
 
+                /*
+                const params = new URLSearchParams();
+                params.append('compName', compName);
+                params.append('config', JSON.stringify(component.config));
+                params.append('type', component.type);
+                const url = `/_/service/${app}/react4xp-component?${params.toString()}`;
+                */
 
                 if (!component.path) {
                     throw Error(`Missing component.path, React4xp couldn't postfill component: ${JSON.stringify(component)}`);
