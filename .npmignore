@@ -1,7 +1,0 @@
-**/
-*
-*.*
-
-# Publish only these:
-!nashornpolyfills.es6
-!webpack.config.react4xp.nashornPolyfills.js
